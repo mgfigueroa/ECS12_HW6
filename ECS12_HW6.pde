@@ -4,6 +4,11 @@ Pong pong;
 int w = 75;
 int threshold = 30;
 color currentBackground;
+String[] questions;
+
+int boxSize = 50;
+int numQuestions = 4;
+float answer;
 
 public class Pong {
   public int length;
@@ -76,8 +81,8 @@ void draw()
   this.loadPixels();
   drawPointer();
   this.updatePixels();
-  drawBoxes();
-  drawQuestions();
+  drawBoxes(boxSize, numQuestions);
+  drawQuestions(boxSize, numQuestions);
   noFill();
   stroke(255);
   rect(280, 160, 640, 480);
@@ -88,24 +93,99 @@ void draw()
   pong.wallBounce();
 }
 
-void drawQuestions() {
-  int boxSize = 50;
-  int numQuestions = 4;
+void drawQuestions(int boxSize, int numQuestions) {
   textSize(boxSize/2);
   float z = (video.height-boxSize*numQuestions)/numQuestions;
   float x = (this.width - video.width)/2 + 2*(z/(2*numQuestions)) + boxSize;
   float y = (this.height - video.height)/2 + z/(2*numQuestions);
-  
+  //questions = createQuestions();
   for (int i = 0; i < numQuestions; i++) { 
-    str = createQuestion();
-    text(str, x, i*(video.height/numQuestions) + y + i*(z/numQuestions) + z/(2*numQuestions), 
+    text(createQuestion(1), x, i*(video.height/numQuestions) + y + i*(z/numQuestions) + z/(2*numQuestions), 
     (this.width - video.width)/2 + video.width, i*(video.height/numQuestions) + y + i*(z/numQuestions) + boxSize);
   }
 }
 
-void drawBoxes() {
-  int boxSize = 50;
-  int numQuestions = 4;
+String createQuestion(int difficulty) {
+  String question = "";
+  int op;
+  int numOne;
+  int numTwo;
+  String[] operator = {
+    " + ", " - ", " * ", " / ", "^", "!"
+  };
+  switch(difficulty) {
+  case 0:
+    op = int(random(2));
+    numOne = int(random(10));
+    numTwo = int(random(5));
+  case 1:
+    op = int(random(4));
+    numOne = int(random(10));
+    numTwo = int(random(5));
+  case 2:
+    op = int(random(6));
+    numOne = int(random(10));
+    numTwo = int(random(5));
+  case 3:
+    op = int(random(2));
+    numOne = int(random(50));
+    numTwo = int(random(25));
+  case 4:
+    op = int(random(4));
+    numOne = int(random(50));
+    numTwo = int(random(25));
+  case 5:
+    op = int(random(6));
+    numOne = int(random(50));
+    numTwo = int(random(25));
+  case 6:
+    op = int(random(2));
+    numOne = int(random(100));
+    numTwo = int(random(50));
+  case 7:
+    op = int(random(4));
+    numOne = int(random(100));
+    numTwo = int(random(50));
+  case 8:
+    op = int(random(6));
+    numOne = int(random(100));
+    numTwo = int(random(100));
+  }
+  if (op == 0) answer = numOne + numTwo;
+  if (op == 1) answer = numOne - numTwo;
+  if (op == 2) answer = numOne * numTwo;
+  if (op == 3) answer = numOne / (numTwo * 1.0);
+  if (op == 4) answer = numOne ^ numTwo;
+  if (op == 5) answer = factorial(numOne);
+
+  answer = str(numOne) + operator[op] + str(numTwo);
+  return question;
+}
+
+int factorial(int numOne) {
+  int fact = 1;
+  for (int i = 1; i <= numOne; i++) {
+    fact *= i;
+  }
+  return fact;
+}
+
+String[] createAnswers(int numQuestions) {/*
+  questions = new String[numQuestions+1];
+ 
+ case 0:
+ questions[4] = int(random(4));
+ questions[questions[4]] = 
+ for (int i = 0; i < numQuestions; i++) {
+ }
+ case 1:
+ 
+ case 2:
+ }
+ */
+}
+
+void drawBoxes(int boxSize, int numQuestions) {
   float z = (video.height-boxSize*numQuestions)/numQuestions;
   float x = (this.width - video.width)/2 + z/8;
   float y = (this.height - video.height)/2 + z/8;
