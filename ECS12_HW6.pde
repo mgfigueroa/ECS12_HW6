@@ -19,7 +19,7 @@ public class Pong {
     if (!existence) {
       x = width/2 - w/2;
       y = height/2 -w/2;
-      while (abs(xMove) < 3 || abs(yMove) < 3) {
+      while (abs (xMove) < 3 || abs(yMove) < 3) {
         xMove = int(random(-4, 4));
         yMove = int(random(-4, 4));
       }
@@ -71,12 +71,13 @@ void draw()
   if (pong.xMove < 0) currentBackground = color(#660000);
   else currentBackground = color(#000066);
   background(currentBackground);
-  
+
   video.loadPixels();
   this.loadPixels();
   drawPointer();
   this.updatePixels();
   drawBoxes();
+  drawQuestions();
   noFill();
   stroke(255);
   rect(280, 160, 640, 480);
@@ -87,13 +88,28 @@ void draw()
   pong.wallBounce();
 }
 
+void drawQuestions() {
+  int boxSize = 50;
+  int numQuestions = 4;
+  textSize(boxSize/2);
+  float z = (video.height-boxSize*numQuestions)/numQuestions;
+  float x = (this.width - video.width)/2 + 2*(z/(2*numQuestions)) + boxSize;
+  float y = (this.height - video.height)/2 + z/(2*numQuestions);
+  
+  for (int i = 0; i < numQuestions; i++) { 
+    str = createQuestion();
+    text(str, x, i*(video.height/numQuestions) + y + i*(z/numQuestions) + z/(2*numQuestions), 
+    (this.width - video.width)/2 + video.width, i*(video.height/numQuestions) + y + i*(z/numQuestions) + boxSize);
+  }
+}
+
 void drawBoxes() {
   int boxSize = 50;
-   float z = (video.height-200)/4;
-   float x = (this.width - video.width)/2 + z/8;
-   float y = (this.height - video.height)/2 + z/8;
-   for(int i = 0; i < 4; i++) rect(x, i*(video.height/4) + y + i*(z/4), 50, 50);
-  
+  int numQuestions = 4;
+  float z = (video.height-boxSize*numQuestions)/numQuestions;
+  float x = (this.width - video.width)/2 + z/8;
+  float y = (this.height - video.height)/2 + z/8;
+  for (int i = 0; i < numQuestions; i++) rect(x, i*(video.height/numQuestions) + y + i*(z/numQuestions), boxSize, boxSize);
 }
 
 
