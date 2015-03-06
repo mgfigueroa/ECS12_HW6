@@ -76,11 +76,26 @@ void draw()
   this.loadPixels();
   drawPointer();
   this.updatePixels();
+  drawBoxes();
+  noFill();
+  stroke(255);
+  rect(280, 160, 640, 480);
+  fill(255);
 
   pong.render();
   pong.move();
   pong.wallBounce();
 }
+
+void drawBoxes() {
+  int boxSize = 50;
+   float z = (video.height-200)/4;
+   float x = (this.width - video.width)/2 + z/8;
+   float y = (this.height - video.height)/2 + z/8;
+   for(int i = 0; i < 4; i++) rect(x, i*(video.height/4) + y + i*(z/4), 50, 50);
+  
+}
+
 
 void drawPointer() {
   for (int x = 0; x < video.width; x ++ ) {
