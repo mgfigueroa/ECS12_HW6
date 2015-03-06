@@ -5,8 +5,8 @@ Capture video;
 Pong pong;
 
 int w = 75;
-int strk = 5;
-int b = 0;
+int threshold = 30;
+color currentBackground;
 
 public class Pong {
   public int length;
@@ -77,36 +77,37 @@ void draw()
   if (video.available()) {
     video.read();
   }
+  video.loadPixels();
   loadPixels();
   
-  if(pong.xMove < 0) background(#660000);
-  else background(#000066);
 
-b = 0;
+  if(pong.xMove < 0){
+    currentBackground = color(#660000);
+    background(currentBackground);
+  }
+  else{
+    currentBackground = color(#000066);
+    background(currentBackground);
+  }
+//b = 0;
 for (int x = 0; x < video.width; x ++ ) {
     for (int y = 0; y < video.height; y ++ ) {
       
       int vidPos = y*video.width + x; 
-      if(x == video.width-1){
-        b += 560;
-        //println(b);
-      }
-      println(b);
-      int thisPos = (1200*160) - 640 - 280 + x + b;
+ 
+      //println(b);
+      int thisPos = (this.width-video.width)/2 + (video.width - x - 1) + ((this.height-video.height)/2 + y) * this.width;
       
       color videoColor = video.pixels[vidPos];
       this.pixels[thisPos] = video.pixels[vidPos];
       
-      
-      
-      //float rv = red(videoColor);
-      //float gv = green(videoColor);
-      //float bv = blue(videoColor);
+      float rv = red(videoColor);
+      float gv = green(videoColor);
+      float bv = blue(videoColor);
 
-      //float diff = dist(rv, gv, bv, 0, 0, 0);
-      //int newPos = y+110*video.width + x+280; 
-      //if ((diffOne > threshold) && (diffTwo > threshold)) pixels[loc] = videoColor; 
-      //if (diff < threshold) pixels[loc] = colorOne;
+      float diff = dist(rv, gv, bv, 255, 255, 255);
+      if (diff < threshold) pixels[thisPos] = color(255);
+      else pixels[thisPos] = currentBackground;
       //else pixels[loc] = videoColor;
 
       
@@ -120,12 +121,7 @@ for (int x = 0; x < video.width; x ++ ) {
 
 
 
-  this.updatePixels();
-
-
-
-
-
+  updatePixels();
 
   pong.render();
   pong.move();
