@@ -6,6 +6,7 @@ Pong pong;
 
 int w = 75;
 int strk = 5;
+int b = 0;
 
 public class Pong {
   public int length;
@@ -77,20 +78,26 @@ void draw()
     video.read();
   }
   loadPixels();
-  println(this.pixels[0]);
   
   if(pong.xMove < 0) background(#660000);
   else background(#000066);
 
-
+b = 0;
 for (int x = 0; x < video.width; x ++ ) {
     for (int y = 0; y < video.height; y ++ ) {
       
       int vidPos = y*video.width + x; 
-      int thisPos = y+110*video.width + x+280; 
-      color videoColor = video.pixels[(width - x - 1) + y*width];
+      if(x == video.width-1){
+        b += 560;
+        println(b);
+      }
+      int thisPos = (1200*160) - 640 - 280 + x + b;
       
+      color videoColor = video.pixels[vidPos];
       this.pixels[thisPos] = video.pixels[vidPos];
+      
+      
+      
       //float rv = red(videoColor);
       //float gv = green(videoColor);
       //float bv = blue(videoColor);
@@ -112,7 +119,7 @@ for (int x = 0; x < video.width; x ++ ) {
 
 
 
-
+  this.updatePixels();
 
 
 
