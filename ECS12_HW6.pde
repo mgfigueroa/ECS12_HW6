@@ -4,10 +4,10 @@ Pong pong;
 int w = 75;
 int threshold = 30;
 color currentBackground;
-String[] answers;
+int[] answers;
 int boxSize = 50;
 int numAnswers = 4;
-float answer;
+int answer;
 String question = "";
 boolean turn;
 
@@ -26,7 +26,7 @@ public class Pong {
       x = width/2 - w/2;
       y = height/2 -w/2;
       while (abs (xMove) < 3 || abs(yMove) < 3) {
-        xMove = int(random(-4, 4));
+        xMove = 10;//int(random(-4, 4));
         if (xMove < 0) turn = false;
         else turn = true;
         yMove = int(random(-4, 4));
@@ -71,6 +71,7 @@ void setup()
   background(0);
   pong = new Pong(5);
   createAnswers(numAnswers);
+  createQuestion(1);
 }
 
 void draw() 
@@ -87,10 +88,13 @@ void draw()
   this.updatePixels();
   drawBoxes(boxSize, numAnswers);
   if (turn()) {
-    //text(question, (this.width - video.width)/2 + 2*((video.height-boxSize*numAnswers)/numAnswers/(2*numAnswers)) + boxSize, (this.height - video.height)/4);
-    text("what the niggeR", 50, 50);
+    createQuestion(0);
     createAnswers(numAnswers);
   }
+  textAlign(CENTER, CENTER);
+  textSize(100);
+  text(question, this.width/2, (this.height - video.height)/4);
+  textAlign(LEFT);
   drawAnswers(boxSize, numAnswers);
   noFill();
   stroke(255);
@@ -113,70 +117,77 @@ boolean turn() {
 }
 
 void drawAnswers(int boxSize, int numAnswers) {
-  textSize(boxSize/2);
+  textSize(boxSize);
+  int offset = boxSize*2;
+  if (!turn) offset *= -1;
   float z = (video.height-boxSize*numAnswers)/numAnswers;
-  float x = (this.width - video.width)/2 + 2*(z/(2*numAnswers)) + boxSize;
-  float y = (this.height - video.height)/2 + z/(2*numAnswers);
+  float x = this.width/2 - boxSize/2 + offset;//(this.width - video.width)/2 + 2*(z/(2*numAnswers)) + boxSize;
+  float y = (this.height - video.height)/2; //+ z/(2*numAnswers);
   for (int i = 0; i < numAnswers; i++) { 
-    text(answers[i], x, i*(video.height/numAnswers) + y + i*(z/numAnswers) + z/(2*numAnswers), 
+    text(str(answers[i]), x, i*(video.height/numAnswers) + y + i*(z/numAnswers) + 3,//+ z/(2*numAnswers), 
     (this.width - video.width)/2 + video.width, i*(video.height/numAnswers) + y + i*(z/numAnswers) + boxSize);
   }
 }
 
-String createQuestion(int difficulty) {
+void createQuestion(int difficulty) {
   int op = 0;
   int numOne = 0;
   int numTwo = 0;
   String[] operator = {
-    " + ", " - ", " * ", " / ", "^", "!"
+    " + ", " - ", " * ", "^"
   };
   switch(difficulty) {
   case 0:
     op = int(random(2));
     numOne = int(random(10));
     numTwo = int(random(5));
+    break;
   case 1:
+    op = int(random(3));
+    numOne = int(random(10));
+    numTwo = int(random(5));
+    break;
+  case 2:
     op = int(random(4));
     numOne = int(random(10));
     numTwo = int(random(5));
-  case 2:
-    op = int(random(6));
-    numOne = int(random(10));
-    numTwo = int(random(5));
+    break;
   case 3:
     op = int(random(2));
     numOne = int(random(50));
     numTwo = int(random(25));
+    break;
   case 4:
+    op = int(random(3));
+    numOne = int(random(50));
+    numTwo = int(random(25));
+    break;
+  case 5:
     op = int(random(4));
     numOne = int(random(50));
     numTwo = int(random(25));
-  case 5:
-    op = int(random(6));
-    numOne = int(random(50));
-    numTwo = int(random(25));
+    break;
   case 6:
     op = int(random(2));
     numOne = int(random(100));
     numTwo = int(random(50));
+    break;
   case 7:
-    op = int(random(4));
+    op = int(random(3));
     numOne = int(random(100));
     numTwo = int(random(50));
+    break;
   case 8:
-    op = int(random(6));
+    op = int(random(4));
     numOne = int(random(100));
     numTwo = int(random(100));
+    break;
   }
   if (op == 0) answer = numOne + numTwo;
   if (op == 1) answer = numOne - numTwo;
   if (op == 2) answer = numOne * numTwo;
-  if (op == 3) answer = numOne / (numTwo * 1.0);
-  if (op == 4) answer = numOne ^ numTwo;
-  if (op == 5) answer = factorial(numOne);
-
+  if (op == 3) answer = numOne ^ numTwo;
   question = str(numOne) + operator[op] + str(numTwo);
-  return question;
 }
 
 int factorial(int numOne) {
@@ -188,22 +199,30 @@ int factorial(int numOne) {
 }
 
 void createAnswers(int numAnswers) {
-  answers = new String[numAnswers+1];
-  int answerIndex = int(random(4));
-  answers[4] = str(answerIndex);
-  answers[answerIndex] = str(answer);
+  answers = new int[numAnswers+1];
+  int answerIndex = int(random(numAnswers));
+  answers[numAnswers] = answerIndex;
+  answers[answerIndex] = answer;
   for (int i = 0; i < numAnswers; i++) {
-    if (i != answerIndex) answers[i] = str(answer + int(random(-10, 10)));
+    if (i != answerIndex) {
+      answers[i] = answer + int(random(-5, 5));
+      while(answers[i] == answer) answers[i] = answer + int(random(-10, 10));
+      for (int j = 0; j < i; j++) {
+        while (answers[i] == answer || answers[i] == answers[j]) {
+          answers[i] = answer + int(random(-10, 10));
+          j = 0;
+        }
+      }
+    }
   }
 }
 
 void drawBoxes(int boxSize, int numAnswers) {
   float z = (video.height-boxSize*numAnswers)/numAnswers;
-  float x = (this.width - video.width)/2 + z/8;
+  float x = this.width/2 - boxSize/2;//(this.width - video.width)/2 + z/8;
   float y = (this.height - video.height)/2 + z/8;
   for (int i = 0; i < numAnswers; i++) rect(x, i*(video.height/numAnswers) + y + i*(z/numAnswers), boxSize, boxSize);
 }
-
 
 void drawPointer() {
   for (int x = 0; x < video.width; x ++ ) {
@@ -221,4 +240,13 @@ void drawPointer() {
     }
   }
 }
+
+void checkAnswer(int boxSize, int numAnswers){
+  float z = (video.height-boxSize*numAnswers)/numAnswers;
+  float x = this.width/2 - boxSize/2;//(this.width - video.width)/2 + z/8;
+  float y = (this.height - video.height)/2 + z/8;
+  for (int i = 0; i < numAnswers; i++) rect(x, i*(video.height/numAnswers) + y + i*(z/numAnswers)
+}
+
+
 
