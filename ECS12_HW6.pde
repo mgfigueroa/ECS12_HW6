@@ -89,8 +89,9 @@ for (int x = 0; x < video.width; x ++ ) {
       int vidPos = y*video.width + x; 
       if(x == video.width-1){
         b += 560;
-        println(b);
+        //println(b);
       }
+      println(b);
       int thisPos = (1200*160) - 640 - 280 + x + b;
       
       color videoColor = video.pixels[vidPos];
