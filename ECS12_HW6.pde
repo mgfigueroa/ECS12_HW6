@@ -83,10 +83,9 @@ void draw()
   background(currentBackground);
 
   video.loadPixels();
+  drawBoxes(boxSize, numAnswers);
   this.loadPixels();
   drawPointer();
-  this.updatePixels();
-  drawBoxes(boxSize, numAnswers);
   if (turn()) {
     createQuestion(0);
     createAnswers(numAnswers);
@@ -96,6 +95,7 @@ void draw()
   text(question, this.width/2, (this.height - video.height)/4);
   textAlign(LEFT);
   drawAnswers(boxSize, numAnswers);
+  println(returnAnswer(boxSize, numAnswers) );
   noFill();
   stroke(255);
   rect(280, 160, 640, 480);
@@ -124,7 +124,7 @@ void drawAnswers(int boxSize, int numAnswers) {
   float x = this.width/2 - boxSize/2 + offset;//(this.width - video.width)/2 + 2*(z/(2*numAnswers)) + boxSize;
   float y = (this.height - video.height)/2; //+ z/(2*numAnswers);
   for (int i = 0; i < numAnswers; i++) { 
-    text(str(answers[i]), x, i*(video.height/numAnswers) + y + i*(z/numAnswers) + 3,//+ z/(2*numAnswers), 
+    text(str(answers[i]), x, i*(video.height/numAnswers) + y + i*(z/numAnswers) + 3, //+ z/(2*numAnswers), 
     (this.width - video.width)/2 + video.width, i*(video.height/numAnswers) + y + i*(z/numAnswers) + boxSize);
   }
 }
@@ -206,7 +206,7 @@ void createAnswers(int numAnswers) {
   for (int i = 0; i < numAnswers; i++) {
     if (i != answerIndex) {
       answers[i] = answer + int(random(-5, 5));
-      while(answers[i] == answer) answers[i] = answer + int(random(-10, 10));
+      while (answers[i] == answer) answers[i] = answer + int(random(-10, 10));
       for (int j = 0; j < i; j++) {
         while (answers[i] == answer || answers[i] == answers[j]) {
           answers[i] = answer + int(random(-10, 10));
@@ -221,6 +221,8 @@ void drawBoxes(int boxSize, int numAnswers) {
   float z = (video.height-boxSize*numAnswers)/numAnswers;
   float x = this.width/2 - boxSize/2;//(this.width - video.width)/2 + z/8;
   float y = (this.height - video.height)/2 + z/8;
+  fill(255, 255, 0);
+  noStroke();
   for (int i = 0; i < numAnswers; i++) rect(x, i*(video.height/numAnswers) + y + i*(z/numAnswers), boxSize, boxSize);
 }
 
@@ -230,23 +232,38 @@ void drawPointer() {
       int vidPos = y*video.width + x;
       int thisPos = (this.width-video.width)/2 + (video.width - x - 1) + ((this.height-video.height)/2 + y) * this.width;
       color videoColor = video.pixels[vidPos];
-      this.pixels[thisPos] = video.pixels[vidPos];
+      //this.pixels[thisPos] = video.pixels[vidPos];
       float rv = red(videoColor);
       float gv = green(videoColor);
       float bv = blue(videoColor);
       float diff = dist(rv, gv, bv, 255, 255, 255);
-      if (diff < threshold) pixels[thisPos] = color(255);
-      else pixels[thisPos] = currentBackground;
+      if (diff < threshold) pixels[thisPos] = color(0, 255, 0);
+      //else if(pixels[thisPos] == color(255, 0, 255)) println("HELLO");//pixels[thisPos] = color(255, 0, 255);
+      //else pixels[thisPos] = currentBackground;
     }
   }
+  this.updatePixels();
 }
 
-void checkAnswer(int boxSize, int numAnswers){
+int returnAnswer(int boxSize, int numAnswers) {
   float z = (video.height-boxSize*numAnswers)/numAnswers;
-  float x = this.width/2 - boxSize/2;//(this.width - video.width)/2 + z/8;
-  float y = (this.height - video.height)/2 + z/8;
-  for (int i = 0; i < numAnswers; i++) rect(x, i*(video.height/numAnswers) + y + i*(z/numAnswers)
+  float x2 = this.width/2 - boxSize/2;//(this.width - video.width)/2 + z/8;
+  float y2 = (this.height - video.height)/2 + z/8;
+
+  for (int x = 0; x < video.width; x ++ ) {
+    for (int y = 0; y < video.height; y ++ ) {
+      for (int i = 0; i < numAnswers; i++) {
+        int vidPos = y*video.width + x;
+        int thisPos = (this.width-video.width)/2 + (video.width - x - 1) + ((this.height-video.height)/2 + y) * this.width;
+        color videoColor = video.pixels[vidPos];
+        if (x >= x2 && x <= x2 + boxSize && y >= i*(video.height/numAnswers) + y2 + i*(z/numAnswers) && y <= i*(video.height/numAnswers) + y2 + i*(z/numAnswers) + boxSize) {
+          if (videoColor == color(255, 255, 0)) {
+            return i;
+          }
+        }
+      }
+    }
+  }  
+  return -1;
 }
-
-
 
