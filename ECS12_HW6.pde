@@ -17,22 +17,16 @@ public class Pong {
   public int y;
   public int xMove = 0;
   public int yMove = 0;
-  public boolean existence;
-  public Pong() {
-    existence = false;
-  }
+  
   public Pong(int sideLength) {
-    if (!existence) {
-      x = width/2 - w/2;
-      y = height/2 -w/2;
-      while (abs (xMove) < 3 || abs(yMove) < 3) {
-        xMove = 10;//int(random(-4, 4));
-        if (xMove < 0) turn = false;
-        else turn = true;
-        yMove = int(random(-4, 4));
-      }
+    x = width/2 - w/2;
+    y = height/2 -w/2;
+    while (abs (xMove) < 3 || abs(yMove) < 3) {
+      xMove = 10;//int(random(-4, 4));
+      if (xMove < 0) turn = false;
+      else turn = true;
+      yMove = int(random(-4, 4));
     }
-    existence = true;
   }
   public void wallBounce() {
     //LEFT SIDE
@@ -70,8 +64,8 @@ void setup()
   video.start();
   background(0);
   pong = new Pong(5);
+  createQuestion(0);
   createAnswers(numAnswers);
-  createQuestion(1);
 }
 
 void draw() 
@@ -81,10 +75,8 @@ void draw()
   if (pong.xMove < 0) currentBackground = color(#660000);
   else currentBackground = color(#000066);
   background(currentBackground);
-
   video.loadPixels();
   drawBoxes(boxSize, numAnswers);
-  this.loadPixels();
   drawPointer();
   if (turn()) {
     createQuestion(0);
@@ -95,12 +87,17 @@ void draw()
   text(question, this.width/2, (this.height - video.height)/4);
   textAlign(LEFT);
   drawAnswers(boxSize, numAnswers);
-  println(returnAnswer(boxSize, numAnswers) );
   noFill();
   stroke(255);
   rect(280, 160, 640, 480);
   fill(255);
 
+  if (correctAnswer() == 2) {
+   // pong = new Pong(5);
+   println("poop");
+    pong.x = width/2;
+    pong.y = height/2;
+  }
   pong.render();
   pong.move();
   pong.wallBounce();
@@ -219,6 +216,7 @@ void drawBoxes(int boxSize, int numAnswers) {
 }
 
 void drawPointer() {
+  this.loadPixels();
   for (int x = 0; x < video.width; x ++ ) {
     for (int y = 0; y < video.height; y ++ ) {
       int vidPos = y*video.width + x;
@@ -237,25 +235,38 @@ void drawPointer() {
   this.updatePixels();
 }
 
+int correctAnswer() {
+  if (returnAnswer (boxSize, numAnswers) == -1) { 
+    if (returnAnswer(boxSize, numAnswers) == answers[numAnswers]) return 1;
+    if (returnAnswer(boxSize, numAnswers) > -1) return 2;
+  }
+  return -MAX_INT;
+}
+
 int returnAnswer(int boxSize, int numAnswers) {
+  this.loadPixels();
   float z = (video.height-boxSize*numAnswers)/numAnswers;
-  float x2 = this.width/2 - boxSize/2;//(this.width - video.width)/2 + z/8;
+  float x2 = this.width/2 - boxSize/2;
   float y2 = (this.height - video.height)/2 + z/8;
 
-  for (int x = 0; x < video.width; x ++ ) {
-    for (int y = 0; y < video.height; y ++ ) {
+  for (int x = 0; x < this.width; x ++ ) { //CHANGE THIS TO VIDEO WIDTH HEIGHT EVENTUALLY PLS
+    for (int y = 0; y < this.height; y ++ ) {
       for (int i = 0; i < numAnswers; i++) {
-        int vidPos = y*video.width + x;
-        int thisPos = (this.width-video.width)/2 + (video.width - x - 1) + ((this.height-video.height)/2 + y) * this.width;
-        color videoColor = video.pixels[vidPos];
+        int thisPos = y*this.width + x;
+        //int thisPos = (this.width-video.width)/2 + (video.width - x - 1) + ((this.height-video.height)/2 + y) * this.width;
+        color thisColor = this.pixels[thisPos];
+        rectMode(CORNER);
         if (x >= x2 && x <= x2 + boxSize && y >= i*(video.height/numAnswers) + y2 + i*(z/numAnswers) && y <= i*(video.height/numAnswers) + y2 + i*(z/numAnswers) + boxSize) {
-          if (videoColor == color(255, 255, 0)) {
+          //println("HERE");
+          //this.pixels[thisPos] = color(255,255,255);
+          if (thisColor == color(0, 255, 0)) {
             return i;
           }
         }
       }
     }
-  }  
+  }
+  this.updatePixels();
   return -1;
 }
 
