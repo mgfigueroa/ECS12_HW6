@@ -190,14 +190,6 @@ void createQuestion(int difficulty) {
   question = str(numOne) + operator[op] + str(numTwo);
 }
 
-int factorial(int numOne) {
-  int fact = 1;
-  for (int i = 1; i <= numOne; i++) {
-    fact *= i;
-  }
-  return fact;
-}
-
 void createAnswers(int numAnswers) {
   answers = new int[numAnswers+1];
   int answerIndex = int(random(numAnswers));
