@@ -145,7 +145,9 @@ void didAnswer() {
   //if (playerOneTurn || playerTwoTurn) {
   if (correctAnswer() == 2 && playerOneTurn) { //Player 1 got it wrong
     playerOneTurn = false; 
+    println(didUpdateScore);
     println("WRONG");
+    println(didUpdateScore);
     updateScore(false);
   } else if (correctAnswer() == 2 && playerTwoTurn) { //Player 2 got it wrong
     playerTwoTurn = false;
@@ -182,10 +184,13 @@ void resetTurn() {
 }
 
 void updateScore(boolean playerOne) {
+  //println(!didUpdateScore);
   if (!didUpdateScore) {
     if (playerOne) {
+      //println("p1++");
       playerOneScore++;
     } else {
+      //println("p2++");
       playerTwoScore++;
     }
   }
