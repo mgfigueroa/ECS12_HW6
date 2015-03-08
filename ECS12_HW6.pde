@@ -17,7 +17,11 @@ int playerTwoScore = 0;
 boolean playerOneTurn = false;
 boolean playerTwoTurn = false;
 boolean didUpdateScore = false;
-
+int currentTime;
+int startTime;
+boolean side; 
+int result;
+int duration = -MAX_INT;
 public class Pong {
   public int length;
   public int x;
@@ -70,6 +74,7 @@ void setup()
   video = new Capture(this, 640, 480, 15);
   video.start();
   background(0);
+  startTime = millis();
   pong = new Pong(5);
   if ( pong.xMove > 0 ) {
     turn = true;
@@ -85,6 +90,7 @@ void setup()
 
 void draw() 
 {
+  currentTime = millis() - startTime;
   if (video.available()) video.read();
 
   if (pong.xMove < 0) currentBackground = color(#660000);
@@ -94,14 +100,19 @@ void draw()
   drawBoxes(boxSize, numAnswers);
   drawPointer();
   boolean turnReturn = turn();
+
+  println(didUpdateScore);
   didAnswer();
-    //print(playerOneTurn);
-    //print(" ");
-    //!println(playerTwoTurn);
-    
+  if ( duration >= currentTime ) showResult(side, result);
+  //print(playerOneTurn);
+  //print(" ");
+  //!println(playerTwoTurn);
   if (turnReturn) {    
+
+    didUpdateScore = false;
+    //println(didUpdateScore);
     //if (!playerOneTurn && !playerTwoTurn) println("T");
-    //println("RESETTURN()");
+    //println("RESETTURN()");R
     resetTurn();
     createQuestion(0);
     createAnswers(numAnswers);
@@ -132,11 +143,9 @@ void draw()
 boolean turn() {
   if (turn == false && pong.xMove > 0) {
     turn = true;
-    didUpdateScore = false;
     return true;
   } else if (turn == true && pong.xMove < 0) {
     turn = false;
-    didUpdateScore = false;
     return true;
   } else return false;
 }
@@ -145,27 +154,40 @@ void didAnswer() {
   //if (playerOneTurn || playerTwoTurn) {
   if (correctAnswer() == 2 && playerOneTurn) { //Player 1 got it wrong
     playerOneTurn = false; 
-    println(didUpdateScore);
-    println("WRONG");
-    println(didUpdateScore);
+    side = false;
+    result = 2;
+    duration = currentTime + 2000;
     updateScore(false);
   } else if (correctAnswer() == 2 && playerTwoTurn) { //Player 2 got it wrong
     playerTwoTurn = false;
+    side = true;
+    result = 2;
+    duration = currentTime + 2000;
     updateScore(true);
   } else if (correctAnswer() == 1 && playerOneTurn) { //Player 1 got it right
-    playerOneTurn = false; 
-    println("RIGHT");
+    playerOneTurn = false;
+    side = false;
+    result = 1;
+    duration = currentTime + 2000;
     updateScore(true);
   } else if (correctAnswer() == 1 && playerTwoTurn) { //Player 2 got it right
     playerTwoTurn = false;
+    side = true;
+    result = 1;
+    duration = currentTime + 2000;
     updateScore(false);
   } else if ( playerOneTurn && turn ) { //Player 1 didn't answer
     playerOneTurn = false; 
-    println("DIDNT ANSWER");
+    side = false;
+    result = 0;
+    duration = currentTime + 2000;
+    //showResult(true);
     updateScore(false);
   } else if ( playerTwoTurn && !turn ) { //Player 2 didnt Answer
-    //println("HERE");
     playerTwoTurn = false;
+    side = true;
+    result = 0;
+    duration = currentTime + 2000;
     updateScore(true);
   }
   // }
@@ -173,15 +195,38 @@ void didAnswer() {
 
 void resetTurn() {
   //println();
-  if (!playerOneTurn && !playerTwoTurn && turn){
+  if (!playerOneTurn && !playerTwoTurn && turn) {
     playerTwoTurn = true;
-  //println("TURN IS TRUE");  
-}
-  if ( !playerOneTurn && !playerTwoTurn && !turn){
+    //println("TURN IS TRUE");
+  }
+  if ( !playerOneTurn && !playerTwoTurn && !turn) {
     playerOneTurn = true;
-  //println("two");  
-} 
+    //println("two");
+  }
 }
+
+void showResult(boolean whichSide, int whatResult) { //Result meaning: 0 = DID NOT ANSWER, 1 = CORRECT, 2 = WRONG
+  String[] strings = {
+    "Time's up!", "Correct!", "Incorrect!"
+  };
+
+  textAlign(CENTER);
+  if (!whichSide) {
+    pushMatrix();
+    translate(this.width/2 - video.width/2, (this.height - video.height)/2);
+    rotate(radians(-35));
+    text(strings[whatResult], 0, 0);
+    popMatrix();
+  } else {
+    pushMatrix();
+    translate(this.width/2 + video.width/2, (this.height - video.height)/2);
+    rotate(radians(35));
+    text(strings[whatResult], 0, 0);
+    popMatrix();
+  }
+  textAlign(LEFT);
+}
+
 
 void updateScore(boolean playerOne) {
   //println(!didUpdateScore);
@@ -194,7 +239,8 @@ void updateScore(boolean playerOne) {
       playerTwoScore++;
     }
   }
-  //println("here");
+
+  println("true");
   didUpdateScore = true;
 }
 
