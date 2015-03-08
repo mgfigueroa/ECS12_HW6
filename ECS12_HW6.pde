@@ -140,20 +140,22 @@ boolean turn() {
 void didAnswer() {
   if (correctAnswer() == 2 && playerOneTurn) {
     playerOneTurn = false;
-    updateScore();
+    updateScore(false);
   } else if (correctAnswer() == 2 && playerTwoTurn) {
     playerTwoTurn = false;
-    updateScore();
+    updateScore(false);
   } else if (correctAnswer() == 1 && playerOneTurn) {
     playerOneTurn = false;
-    updateScore();
+    updateScore(true);
   } else if (correctAnswer() == 1 && playerTwoTurn) {
     playerTwoTurn = false;
-    updateScore();
+    updateScore(true);
   } else if ( playerOneTurn && turn ) {
     playerOneTurn = false;
+    updateScore(false);
   } else if ( playerTwoTurn && !turn ) {
     playerTwoTurn = false;
+    updateScore(false);
   }
 
   void resetTurn() {
@@ -161,7 +163,21 @@ void didAnswer() {
     else if ( !playerOneTurn && !playerTwoTurn && !turn) playerOneTurn = true;
   }
 
-  void updateScore() {
+  void updateScore(boolean correct) {
+    if (correct) {
+      if (turn) {
+        playerTwoScore++;
+      } else {
+        playerOneScore++;
+      }
+    } else {
+      if (turn) {
+        playerOneScore++;
+      } else {
+        playerTwoScore++;
+      }
+    }
+    didUpdateScore = true;
   }
 
 
