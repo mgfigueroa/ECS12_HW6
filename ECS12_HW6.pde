@@ -28,12 +28,12 @@ public class Pong {
   public Pong(int sideLength) {
     x = width/2 - w/2;
     y = height/2 -w/2;
-    while (abs (xMove) < 3 || abs(yMove) < 3) {
-      xMove = 10;//int(random(-4, 4));
-      if (xMove < 0) turn = false;
-      else turn = true;
-      yMove = int(random(-4, 4));
-    }
+    //while (abs (xMove) < 3 || abs(yMove) < 3) {
+    xMove = 10;//int(random(-4, 4));
+    if (xMove < 0) turn = false;
+    else turn = true;
+    yMove = int(random(-4, 4));
+    //}
   }
   public void wallBounce() {
     //LEFT SIDE
@@ -93,9 +93,15 @@ void draw()
   video.loadPixels();
   drawBoxes(boxSize, numAnswers);
   drawPointer();
+  boolean turnReturn = turn();
   didAnswer();
-  if (turn()) {    
-    //if (!playerOneTurn && !playerTwoTurn && !turn) println("T");
+    //print(playerOneTurn);
+    //print(" ");
+    //!println(playerTwoTurn);
+    
+  if (turnReturn) {    
+    //if (!playerOneTurn && !playerTwoTurn) println("T");
+    //println("RESETTURN()");
     resetTurn();
     createQuestion(0);
     createAnswers(numAnswers);
@@ -115,7 +121,7 @@ void draw()
   //if (turn) {
   //}
   //    /updateScore();
- //println(playerOneTurn);
+  //println(playerTwoTurn);
   // }
 
   pong.render();
@@ -137,55 +143,54 @@ boolean turn() {
 
 void didAnswer() {
   //if (playerOneTurn || playerTwoTurn) {
-    if (correctAnswer() == 2 && playerOneTurn) {
-      playerOneTurn = false; 
-      println("WRONG");
-      updateScore(false);
-    } else if (correctAnswer() == 2 && playerTwoTurn) {
-      playerTwoTurn = false;
-      updateScore(false);
-    } else if (correctAnswer() == 1 && playerOneTurn) {
-      playerOneTurn = false; 
-      println("RIGHT");
-      updateScore(true);
-    } else if (correctAnswer() == 1 && playerTwoTurn) {
-      playerTwoTurn = false;
-      updateScore(true);
-    } else if ( playerOneTurn && turn ) {
-      playerOneTurn = false; 
-      println("DIDNT ANSWER");
-      updateScore(false);
-    } else if ( playerTwoTurn && !turn ) {
-      playerTwoTurn = false;
-      updateScore(false);
-    }
- // }
+  if (correctAnswer() == 2 && playerOneTurn) { //Player 1 got it wrong
+    playerOneTurn = false; 
+    println("WRONG");
+    updateScore(false);
+  } else if (correctAnswer() == 2 && playerTwoTurn) { //Player 2 got it wrong
+    playerTwoTurn = false;
+    updateScore(true);
+  } else if (correctAnswer() == 1 && playerOneTurn) { //Player 1 got it right
+    playerOneTurn = false; 
+    println("RIGHT");
+    updateScore(true);
+  } else if (correctAnswer() == 1 && playerTwoTurn) { //Player 2 got it right
+    playerTwoTurn = false;
+    updateScore(false);
+  } else if ( playerOneTurn && turn ) { //Player 1 didn't answer
+    playerOneTurn = false; 
+    println("DIDNT ANSWER");
+    updateScore(false);
+  } else if ( playerTwoTurn && !turn ) { //Player 2 didnt Answer
+    //println("HERE");
+    playerTwoTurn = false;
+    updateScore(true);
+  }
+  // }
 }
 
 void resetTurn() {
-  if (!playerOneTurn && !playerTwoTurn && turn) playerTwoTurn = true;
-  else if ( !playerOneTurn && !playerTwoTurn && !turn)
+  //println();
+  if (!playerOneTurn && !playerTwoTurn && turn){
+    playerTwoTurn = true;
+  //println("TURN IS TRUE");  
+}
+  if ( !playerOneTurn && !playerTwoTurn && !turn){
     playerOneTurn = true;
+  //println("two");  
+} 
 }
 
-void updateScore(boolean correct) {
+void updateScore(boolean playerOne) {
   if (!didUpdateScore) {
-    if (correct) {
-      if (turn) {
-        playerTwoScore++;
-      } else {
-        playerOneScore++;
-      }
+    if (playerOne) {
+      playerOneScore++;
     } else {
-      if (turn) {
-        playerOneScore++;
-      } else {
-        playerTwoScore++;
-      }
+      playerTwoScore++;
     }
-    println("here");
-    didUpdateScore = true;
   }
+  //println("here");
+  didUpdateScore = true;
 }
 
 
