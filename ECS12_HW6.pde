@@ -3,7 +3,7 @@ Capture video;
 Pong pong;
 Wall wall;
 int w = 75;
-int threshold = 5;
+int threshold = 20;
 color currentBackground;
 int[] answers;
 int boxSize = 50;
@@ -12,7 +12,7 @@ int answer;
 String question = "";
 boolean turn;
 color playerOneColor = color(109, 150, 166);
-color playerTwoColor = color(255, 153, 0);
+color playerTwoColor = color(0);
 int playerOneScore;
 int playerTwoScore;
 boolean playerOneTurn = false;
@@ -211,6 +211,7 @@ void newGame() {
   createQuestion(0);
   createAnswers(numAnswers, 0);
   playerOneScore = 0;
+  numAnswers = 4;
   playerTwoScore = 0;
   gameOver = false;
 }
@@ -469,7 +470,7 @@ int returnAnswer(int boxSize, int numAnswers) {
   float z = (video.height-boxSize*numAnswers)/numAnswers;
   float x2 = this.width/2 - boxSize/2;
   float y2 = (this.height - video.height)/2 + z/8;
-
+  int[] count = new int[numAnswers];
   for (int x = 0; x < video.width; x++ ) {
     for (int y = 0; y < video.height; y++ ) {
       for (int i = 0; i < numAnswers; i++) {
@@ -481,16 +482,21 @@ int returnAnswer(int boxSize, int numAnswers) {
         rectMode(CORNER);
         if (x1 >= x2 && x1 <= x2 + boxSize && y1 >= i*(video.height/numAnswers) + y2 + i*(z/numAnswers) && y1 <= i*(video.height/numAnswers) + y2 + i*(z/numAnswers) + boxSize) {
           if (thisColor == playerOneColor && playerOneTurn) {
-            return i;
+            count[i]++;
           }
           if (thisColor == playerTwoColor && playerTwoTurn) {
-            return i;
+            count[i]++;
           }
         }
       }
     }
   }
+  int max = -1;
+  for(int i = 0; i < numAnswers; i++){
+    if(count[i] > max) max = i;
+  }
   this.updatePixels();
-  return -1;
+  if(count[max] >= 10) return max;
+  else return -1;
 }
 
