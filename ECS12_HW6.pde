@@ -13,8 +13,8 @@ String question = "";
 boolean turn;
 color playerOneColor = color(109, 150, 166);
 color playerTwoColor = color(255, 153, 0);
-int playerOneScore = 0;
-int playerTwoScore = 0;
+int playerOneScore;
+int playerTwoScore;
 boolean playerOneTurn = false;
 boolean playerTwoTurn = false;
 boolean didUpdateScore = false;
@@ -119,13 +119,9 @@ void setup()
 
 void draw() 
 {
-
-
   if (!gameOver) {
-    isGameOver();
     currentTime = millis() - startTime;
     if (video.available()) video.read();
-
     if (pong.xMove < 0) currentBackground = color(#660000);
     else currentBackground = color(#000066);
     background(currentBackground);
@@ -172,25 +168,34 @@ void draw()
     textAlign(LEFT);
     drawAnswers(boxSize, numAnswers);
     drawScore();
-    noFill();
-    stroke(255);
-    rect(280, 160, 640, 480);
-    noStroke();
-    fill(255);
+
     pong.render();
     pong.move();
     pong.wallBounce();
+    
+    isGameOver();
   } else {
-    background(0);
+    fill(255);
+    textSize(50);
+    textAlign(CENTER);
+    if (playerOneScore == 16) {
+      background(#660000);
+      text("PLAYER 1 WINS!", this.width/2, (this.height - video.height));
+      text(str(playerOneScore) + " - " + str(playerTwoScore), this.width/2, (this.height - video.height)+ 50);
+    } else {
+      background(#000066);
+      text("PLAYER 2 WINS!", this.width/2, (this.height - video.height));
+      text(str(playerTwoScore) + " - " + str(playerOneScore), this.width/2, (this.height - video.height)+ 50);
+    }
+    textAlign(LEFT);
   }
 }
 
-void keyPressed(){
+void keyPressed() {
   newGame();
-  
 }
 
-void newGame(){
+void newGame() {
   pong = new Pong(5);
   startTime = millis();
   if ( pong.xMove > 0 ) {
@@ -205,8 +210,11 @@ void newGame(){
   wall.move(-MAX_INT);
   createQuestion(0);
   createAnswers(numAnswers, 0);
+  playerOneScore = 0;
+  playerTwoScore = 0;
   gameOver = false;
 }
+
 
 void isGameOver() {
   if ( playerOneScore == 16 || playerTwoScore == 16 ) gameOver = true;
@@ -283,13 +291,13 @@ void showResult(boolean whichSide, int whatResult) { //Result meaning: 0 = DID N
   textAlign(CENTER);
   if (!whichSide) {
     pushMatrix();
-    translate(this.width/2 - video.width/2, (this.height - video.height)/2);
+    translate(this.width/2 - video.width/2, (this.height - video.height));
     rotate(radians(-25));
     text(strings[whatResult], 0, 0);
     popMatrix();
   } else {
     pushMatrix();
-    translate(this.width/2 + video.width/2, (this.height - video.height)/2);
+    translate(this.width/2 + video.width/2, (this.height - video.height));
     rotate(radians(25));
     text(strings[whatResult], 0, 0);
     popMatrix();
@@ -341,55 +349,58 @@ void createQuestion(int difficulty) {
   switch(difficulty) {
   case 0:
     op = int(random(2));
-    numOne = int(random(10));
-    numTwo = int(random(5));
+    numOne = int(random(-10, 10));
+    numTwo = int(random(-5, 5));
     break;
   case 1:
     op = int(random(3));
-    numOne = int(random(10));
-    numTwo = int(random(5));
+    numOne = int(random(-15, 15));
+    numTwo = int(random(-5, 5));
     break;
   case 2:
     op = int(random(4));
-    numOne = int(random(10));
-    numTwo = int(random(5));
+    numOne = int(random(-20, 20));
+    numTwo = int(random(-5, 5));
     break;
   case 3:
     op = int(random(2));
-    numOne = int(random(50));
-    numTwo = int(random(25));
+    numOne = int(random(-25, 25));
+    numTwo = int(random(-10, 10));
     break;
   case 4:
     op = int(random(3));
-    numOne = int(random(50));
-    numTwo = int(random(25));
+    numOne = int(random(-30, 30));
+    numTwo = int(random(-10, 10));
     break;
   case 5:
     op = int(random(4));
-    numOne = int(random(50));
-    numTwo = int(random(25));
+    numOne = int(random(-35, 35));
+    numTwo = int(random(-10, 10));
     break;
   case 6:
     op = int(random(2));
-    numOne = int(random(100));
-    numTwo = int(random(50));
+    numOne = int(random(-40, 40));
+    numTwo = int(random(-15, 15));
     break;
   case 7:
     op = int(random(3));
-    numOne = int(random(100));
-    numTwo = int(random(50));
+    numOne = int(random(-45, 45));
+    numTwo = int(random(-15, 15));
     break;
   case 8:
     op = int(random(4));
-    numOne = int(random(100));
-    numTwo = int(random(100));
+    numOne = int(random(-50, 50));
+    numTwo = int(random(-15, 15));
     break;
   }
   if (op == 0) answer = numOne + numTwo;
   if (op == 1) answer = numOne - numTwo;
   if (op == 2) answer = numOne * numTwo;
   if (op == 3) answer = numOne * numTwo;
-  question = str(numOne) + operator[op] + str(numTwo);
+  if (numTwo >= 0)
+    question = str(numOne) + operator[op] + str(numTwo);
+  else 
+    question = str(numOne) + operator[op] + "(" + str(numTwo) + ")";
 }
 
 void createAnswers(int numAnswers, int difficulty) {
