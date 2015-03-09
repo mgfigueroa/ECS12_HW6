@@ -23,6 +23,7 @@ int startTime;
 boolean side; 
 int result;
 int duration = -MAX_INT;
+boolean gameOver;
 
 
 public class Pong {
@@ -112,10 +113,86 @@ void setup()
   video = new Capture(this, 640, 480, 15);
   video.start();
   background(0);
-
   noStroke();
-  startTime = millis();
+  newGame();
+}
+
+void draw() 
+{
+
+
+  if (!gameOver) {
+    isGameOver();
+    currentTime = millis() - startTime;
+    if (video.available()) video.read();
+
+    if (pong.xMove < 0) currentBackground = color(#660000);
+    else currentBackground = color(#000066);
+    background(currentBackground);
+    video.loadPixels();
+    drawBoxes(boxSize, numAnswers);
+    drawPointer();
+    boolean turnReturn = turn();
+    didAnswer();
+    if ( duration >= currentTime ) {
+      showResult(side, result);
+      if (result == 1) {
+        wall.render(side);
+        if ( wall.x > -1 && side == turn) pong.barBounce();
+      }
+    } else wall.move(-MAX_INT);
+    if (turnReturn) {    
+      didUpdateScore = false;
+      resetTurn();
+      if (playerOneTurn) {
+        createQuestion(playerOneScore/2);
+        createAnswers(numAnswers, playerOneScore/2);
+      } else createQuestion(playerTwoScore/2);
+      createAnswers(numAnswers, playerTwoScore/2);
+
+      if ((playerOneScore + playerTwoScore) % 2 == 0) {
+        if (turn) pong.xMove+=1;
+        else pong.xMove-=1;
+      }
+    }
+
+    if ((playerOneScore + playerTwoScore) == 6 && numAnswers < 5) {
+      numAnswers++;
+      boxSize-=5;
+    }
+    if ((playerOneScore + playerTwoScore) == 12 && numAnswers < 6) { 
+      numAnswers++;
+      boxSize-=5;
+    }
+
+    textAlign(CENTER, CENTER);
+    textSize(100);
+    fill(255);
+    text(question, this.width/2, (this.height - video.height)/4);
+    textAlign(LEFT);
+    drawAnswers(boxSize, numAnswers);
+    drawScore();
+    noFill();
+    stroke(255);
+    rect(280, 160, 640, 480);
+    noStroke();
+    fill(255);
+    pong.render();
+    pong.move();
+    pong.wallBounce();
+  } else {
+    background(0);
+  }
+}
+
+void keyPressed(){
+  newGame();
+  
+}
+
+void newGame(){
   pong = new Pong(5);
+  startTime = millis();
   if ( pong.xMove > 0 ) {
     turn = true;
     playerTwoTurn = true;
@@ -128,68 +205,11 @@ void setup()
   wall.move(-MAX_INT);
   createQuestion(0);
   createAnswers(numAnswers, 0);
+  gameOver = false;
 }
 
-void draw() 
-{
-  currentTime = millis() - startTime;
-  if (video.available()) video.read();
-
-  if (pong.xMove < 0) currentBackground = color(#660000);
-  else currentBackground = color(#000066);
-  background(currentBackground);
-  video.loadPixels();
-  drawBoxes(boxSize, numAnswers);
-  drawPointer();
-  boolean turnReturn = turn();
-  didAnswer();
-  if ( duration >= currentTime ) {
-    showResult(side, result);
-    if (result == 1) {
-      wall.render(side);
-      if ( wall.x > -1 && side == turn) pong.barBounce();
-    }
-  } else wall.move(-MAX_INT);
-  if (turnReturn) {    
-    didUpdateScore = false;
-    resetTurn();
-    if (playerOneTurn) {
-      createQuestion(playerOneScore/2);
-      createAnswers(numAnswers, playerOneScore/2);
-    } else createQuestion(playerTwoScore/2);
-    createAnswers(numAnswers, playerTwoScore/2);
-
-    if ((playerOneScore + playerTwoScore) % 2 == 0) {
-      if (turn) pong.xMove+=1;
-      else pong.xMove-=1;
-    }
-  }
-
-  if ((playerOneScore + playerTwoScore) == 6 && numAnswers < 5) {
-    numAnswers++;
-    boxSize-=5;
-  }
-  if ((playerOneScore + playerTwoScore) == 12 && numAnswers < 6) { 
-    numAnswers++;
-    boxSize-=5;
-  }
-
-println(pong.xMove);
-  textAlign(CENTER, CENTER);
-  textSize(100);
-  fill(255);
-  text(question, this.width/2, (this.height - video.height)/4);
-  textAlign(LEFT);
-  drawAnswers(boxSize, numAnswers);
-  drawScore();
-  noFill();
-  stroke(255);
-  rect(280, 160, 640, 480);
-  noStroke();
-  fill(255);
-  pong.render();
-  pong.move();
-  pong.wallBounce();
+void isGameOver() {
+  if ( playerOneScore == 16 || playerTwoScore == 16 ) gameOver = true;
 }
 
 boolean turn() {
