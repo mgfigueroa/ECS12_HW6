@@ -1,6 +1,7 @@
 import processing.video.*;
 Capture video;
 Pong pong;
+Wall wall;
 int w = 75;
 int threshold = 5;
 color currentBackground;
@@ -10,7 +11,7 @@ int numAnswers = 4;
 int answer;
 String question = "";
 boolean turn;
-color playerOneColor = color(255);//color(109, 150, 166);
+color playerOneColor = color(109, 150, 166);
 color playerTwoColor = color(255, 153, 0);
 int playerOneScore = 0;
 int playerTwoScore = 0;
@@ -22,6 +23,9 @@ int startTime;
 boolean side; 
 int result;
 int duration = -MAX_INT;
+
+
+
 public class Pong {
   public int length;
   public int x;
@@ -33,7 +37,7 @@ public class Pong {
     x = width/2 - w/2;
     y = height/2 -w/2;
     //while (abs (xMove) < 3 || abs(yMove) < 3) {
-    xMove = 10;//int(random(-4, 4));
+    xMove = 20;//int(random(-4, 4));
     if (xMove < 0) turn = false;
     else turn = true;
     yMove = int(random(-4, 4));
@@ -57,6 +61,17 @@ public class Pong {
       yMove = -yMove;
     }
   }
+  public void barBounce() {
+    //LEFT SIDE
+    if ( x < wall.x - w + w/4) {
+      xMove = -xMove;
+    } 
+    //RIGHT SIDE
+    if (x > wall.x + w + w - w/4) {
+      xMove = -xMove;
+    }
+  }
+
   public void move() {
     x += xMove;
     y += yMove;
@@ -67,6 +82,30 @@ public class Pong {
   }
 }
 
+public class Wall {
+  public int x;
+
+  public Wall() {
+    x = pong.x;
+  }
+
+  public void render(boolean side) {
+    rectMode(CENTER);
+    fill(255);
+    stroke(0);
+    strokeWeight(2);
+    if (side) {
+      rect(x + w + w, pong.y + w/2, w/4, 2*w);
+    } else { 
+      rect(x - w, pong.y + w/2, w/4, w*2);
+    }
+    noStroke();
+    rectMode(CORNER);
+  }
+  public void move(int x) {
+    this.x = x;
+  }
+}
 
 void setup()
 {
@@ -74,6 +113,8 @@ void setup()
   video = new Capture(this, 640, 480, 15);
   video.start();
   background(0);
+
+  noStroke();
   startTime = millis();
   pong = new Pong(5);
   if ( pong.xMove > 0 ) {
@@ -84,8 +125,10 @@ void setup()
     turn = false;
     playerOneTurn = true;
   }
+  wall = new Wall();
+  wall.move(-MAX_INT);
   createQuestion(0);
-  createAnswers(numAnswers);
+  createAnswers(numAnswers, 0);
 }
 
 void draw() 
@@ -100,25 +143,38 @@ void draw()
   drawBoxes(boxSize, numAnswers);
   drawPointer();
   boolean turnReturn = turn();
-
-  println(didUpdateScore);
   didAnswer();
-  if ( duration >= currentTime ) showResult(side, result);
+  if ( duration >= currentTime ) {
+    showResult(side, result);
+    if (result == 1) {
+      wall.render(side);
+      if ( wall.x > -1 && side == turn) pong.barBounce();
+    }
+  } else wall.move(-MAX_INT);
   //print(playerOneTurn);
   //print(" ");
   //!println(playerTwoTurn);
   if (turnReturn) {    
-
     didUpdateScore = false;
-    //println(didUpdateScore);
-    //if (!playerOneTurn && !playerTwoTurn) println("T");
-    //println("RESETTURN()");R
     resetTurn();
-    createQuestion(0);
-    createAnswers(numAnswers);
+    if (playerOneTurn) {
+      createQuestion(playerOneScore/2);
+      createAnswers(numAnswers, playerOneScore/2);
+    } else createQuestion(playerTwoScore/2);
+    createAnswers(numAnswers, playerTwoScore/2);
+  }
+
+  if ((playerOneScore + playerTwoScore) == 6 && numAnswers < 5) {
+    numAnswers++;
+    boxSize-=5;
+  }
+  if ((playerOneScore + playerTwoScore) == 12 && numAnswers < 6) { 
+    numAnswers++;
+    boxSize-=5;
   }
   textAlign(CENTER, CENTER);
   textSize(100);
+  fill(255);
   text(question, this.width/2, (this.height - video.height)/4);
   textAlign(LEFT);
   drawAnswers(boxSize, numAnswers);
@@ -126,6 +182,7 @@ void draw()
   noFill();
   stroke(255);
   rect(280, 160, 640, 480);
+  noStroke();
   fill(255);
 
   //if (correctAnswer() == 2) {
@@ -134,7 +191,6 @@ void draw()
   //    /updateScore();
   //println(playerTwoTurn);
   // }
-
   pong.render();
   pong.move();
   pong.wallBounce();
@@ -169,19 +225,20 @@ void didAnswer() {
     side = false;
     result = 1;
     duration = currentTime + 2000;
+    wall = new Wall();
     updateScore(true);
   } else if (correctAnswer() == 1 && playerTwoTurn) { //Player 2 got it right
     playerTwoTurn = false;
     side = true;
     result = 1;
     duration = currentTime + 2000;
+    wall = new Wall();
     updateScore(false);
   } else if ( playerOneTurn && turn ) { //Player 1 didn't answer
     playerOneTurn = false; 
     side = false;
     result = 0;
     duration = currentTime + 2000;
-    //showResult(true);
     updateScore(false);
   } else if ( playerTwoTurn && !turn ) { //Player 2 didnt Answer
     playerTwoTurn = false;
@@ -209,18 +266,18 @@ void showResult(boolean whichSide, int whatResult) { //Result meaning: 0 = DID N
   String[] strings = {
     "Time's up!", "Correct!", "Incorrect!"
   };
-
+  fill(255, 255, 0);
   textAlign(CENTER);
   if (!whichSide) {
     pushMatrix();
     translate(this.width/2 - video.width/2, (this.height - video.height)/2);
-    rotate(radians(-35));
+    rotate(radians(-25));
     text(strings[whatResult], 0, 0);
     popMatrix();
   } else {
     pushMatrix();
     translate(this.width/2 + video.width/2, (this.height - video.height)/2);
-    rotate(radians(35));
+    rotate(radians(25));
     text(strings[whatResult], 0, 0);
     popMatrix();
   }
@@ -229,18 +286,13 @@ void showResult(boolean whichSide, int whatResult) { //Result meaning: 0 = DID N
 
 
 void updateScore(boolean playerOne) {
-  //println(!didUpdateScore);
   if (!didUpdateScore) {
     if (playerOne) {
-      //println("p1++");
       playerOneScore++;
     } else {
-      //println("p2++");
       playerTwoScore++;
     }
   }
-
-  println("true");
   didUpdateScore = true;
 }
 
@@ -259,6 +311,7 @@ void drawAnswers(int boxSize, int numAnswers) {
   float z = (video.height-boxSize*numAnswers)/numAnswers;
   float x = this.width/2 - boxSize/2 + offset;//(this.width - video.width)/2 + 2*(z/(2*numAnswers)) + boxSize;
   float y = (this.height - video.height)/2; //+ z/(2*numAnswers);
+  fill(255);
   for (int i = 0; i < numAnswers; i++) { 
     text(str(answers[i]), x, i*(video.height/numAnswers) + y + i*(z/numAnswers) + 3, //+ z/(2*numAnswers), 
     (this.width - video.width)/2 + video.width, i*(video.height/numAnswers) + y + i*(z/numAnswers) + boxSize);
@@ -270,7 +323,7 @@ void createQuestion(int difficulty) {
   int numOne = 0;
   int numTwo = 0;
   String[] operator = {
-    " + ", " - ", " * ", "^"
+    " + ", " - ", " * ", "*"
   };
   switch(difficulty) {
   case 0:
@@ -322,11 +375,11 @@ void createQuestion(int difficulty) {
   if (op == 0) answer = numOne + numTwo;
   if (op == 1) answer = numOne - numTwo;
   if (op == 2) answer = numOne * numTwo;
-  if (op == 3) answer = numOne ^ numTwo;
+  if (op == 3) answer = numOne * numTwo;
   question = str(numOne) + operator[op] + str(numTwo);
 }
 
-void createAnswers(int numAnswers) {
+void createAnswers(int numAnswers, int difficulty) {
   answers = new int[numAnswers+1];
   int answerIndex = int(random(numAnswers));
   answers[numAnswers] = answerIndex;
@@ -334,7 +387,7 @@ void createAnswers(int numAnswers) {
   for (int i = 0; i < numAnswers; i++) {
     if (i != answerIndex) {
       answers[i] = answer + int(random(-5, 5));
-      while (answers[i] == answer) answers[i] = answer + int(random(-10, 10));
+      while (answers[i] == answer) answers[i] = answer + int(random(-10 - difficulty, 10 + difficulty));
       for (int j = 0; j < i; j++) {
         while (answers[i] == answer || answers[i] == answers[j]) {
           answers[i] = answer + int(random(-10, 10));
@@ -349,39 +402,30 @@ void drawBoxes(int boxSize, int numAnswers) {
   float z = (video.height-boxSize*numAnswers)/numAnswers;
   float x = this.width/2 - boxSize/2;//(this.width - video.width)/2 + z/8;
   float y = (this.height - video.height)/2 + z/8;
-  fill(255, 255, 0);
-  noStroke();
+  fill(255);
   for (int i = 0; i < numAnswers; i++) rect(x, i*(video.height/numAnswers) + y + i*(z/numAnswers), boxSize, boxSize);
 }
 
 void drawPointer() {
   this.loadPixels();
-  for (int x = 0; x < video.width; x ++ ) {
-    for (int y = 0; y < video.height; y ++ ) {
-
-      color colorOne = playerOneColor;
-      color colorTwo = playerTwoColor;
+  float r1 = red(playerOneColor);
+  float g1 = green(playerOneColor);
+  float b1 = blue(playerOneColor);
+  float r2 = red(playerTwoColor);
+  float g2 = green(playerTwoColor);
+  float b2 = blue(playerTwoColor);
+  for (int x = 0; x < video.width; x++ ) {
+    for (int y = 0; y < video.height; y++ ) {
       int vidPos = y*video.width + x;
       int thisPos = (this.width-video.width)/2 + (video.width - x - 1) + ((this.height-video.height)/2 + y) * this.width;
       color videoColor = video.pixels[vidPos];
-      //this.pixels[thisPos] = video.pixels[vidPos];
       float rv = red(videoColor);
       float gv = green(videoColor);
       float bv = blue(videoColor);
-      float r1 = red(colorOne);
-      float g1 = green(colorOne);
-      float b1 = blue(colorOne);
-      float r2 = red(colorTwo);
-      float g2 = green(colorTwo);
-      float b2 = blue(colorTwo);
       float diffOne = dist(rv, gv, bv, r1, g1, b1);
       float diffTwo = dist(rv, gv, bv, r2, g2, b2);
-
-      if (diffOne < threshold) pixels[thisPos] = colorOne;
-      if (diffTwo < threshold) pixels[thisPos] = colorTwo;
-      //else pixels[thisPos] = videoColor;
-      //else if(pixels[thisPos] == color(255, 0, 255)) println("HELLO");//pixels[thisPos] = color(255, 0, 255);
-      //else pixels[thisPos] = currentBackground;
+      if (diffOne < threshold) pixels[thisPos] = playerOneColor;
+      if (diffTwo < threshold) pixels[thisPos] = playerTwoColor;
     }
   }
   this.updatePixels();
@@ -390,7 +434,8 @@ void drawPointer() {
 int correctAnswer() {
   if (returnAnswer(boxSize, numAnswers) != -1) { 
     if (returnAnswer(boxSize, numAnswers) == answers[numAnswers]) return 1;
-    if (returnAnswer(boxSize, numAnswers) > -1) return 2;
+    //if (returnAnswer(boxSize, numAnswers) > -1) return 2;
+    else return 2;
   }
   return -1;
 }
@@ -401,7 +446,7 @@ int returnAnswer(int boxSize, int numAnswers) {
   float x2 = this.width/2 - boxSize/2;
   float y2 = (this.height - video.height)/2 + z/8;
 
-  for (int x = 0; x < video.width; x++ ) { //CHANGE THIS TO VIDEO WIDTH HEIGHT EVENTUALLY PLS
+  for (int x = 0; x < video.width; x++ ) {
     for (int y = 0; y < video.height; y++ ) {
       for (int i = 0; i < numAnswers; i++) {
         //int vidPos = y*this.width + x;
@@ -411,8 +456,6 @@ int returnAnswer(int boxSize, int numAnswers) {
         int y1 = y + (this.height-video.height)/2;
         rectMode(CORNER);
         if (x1 >= x2 && x1 <= x2 + boxSize && y1 >= i*(video.height/numAnswers) + y2 + i*(z/numAnswers) && y1 <= i*(video.height/numAnswers) + y2 + i*(z/numAnswers) + boxSize) {
-          //println("HERE");
-          //this.pixels[thisPos] = color(255,255,255);
           if (thisColor == playerOneColor && playerOneTurn) {
             return i;
           }
