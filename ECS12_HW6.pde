@@ -25,7 +25,6 @@ int result;
 int duration = -MAX_INT;
 
 
-
 public class Pong {
   public int length;
   public int x;
@@ -36,12 +35,12 @@ public class Pong {
   public Pong(int sideLength) {
     x = width/2 - w/2;
     y = height/2 -w/2;
-    //while (abs (xMove) < 3 || abs(yMove) < 3) {
-    xMove = 20;//int(random(-4, 4));
-    if (xMove < 0) turn = false;
-    else turn = true;
-    yMove = int(random(-4, 4));
-    //}
+    while (abs (xMove) < 6 || abs(yMove) < 6) {
+      xMove = int(random(-7, 7));
+      if (xMove < 0) turn = false;
+      else turn = true;
+      yMove = int(random(-7, 7));
+    }
   }
   public void wallBounce() {
     //LEFT SIDE
@@ -151,9 +150,6 @@ void draw()
       if ( wall.x > -1 && side == turn) pong.barBounce();
     }
   } else wall.move(-MAX_INT);
-  //print(playerOneTurn);
-  //print(" ");
-  //!println(playerTwoTurn);
   if (turnReturn) {    
     didUpdateScore = false;
     resetTurn();
@@ -162,6 +158,11 @@ void draw()
       createAnswers(numAnswers, playerOneScore/2);
     } else createQuestion(playerTwoScore/2);
     createAnswers(numAnswers, playerTwoScore/2);
+
+    if ((playerOneScore + playerTwoScore) % 2 == 0) {
+      if (turn) pong.xMove+=1;
+      else pong.xMove-=1;
+    }
   }
 
   if ((playerOneScore + playerTwoScore) == 6 && numAnswers < 5) {
@@ -172,6 +173,8 @@ void draw()
     numAnswers++;
     boxSize-=5;
   }
+
+println(pong.xMove);
   textAlign(CENTER, CENTER);
   textSize(100);
   fill(255);
@@ -184,13 +187,6 @@ void draw()
   rect(280, 160, 640, 480);
   noStroke();
   fill(255);
-
-  //if (correctAnswer() == 2) {
-  //if (turn) {
-  //}
-  //    /updateScore();
-  //println(playerTwoTurn);
-  // }
   pong.render();
   pong.move();
   pong.wallBounce();
@@ -251,14 +247,11 @@ void didAnswer() {
 }
 
 void resetTurn() {
-  //println();
   if (!playerOneTurn && !playerTwoTurn && turn) {
     playerTwoTurn = true;
-    //println("TURN IS TRUE");
   }
   if ( !playerOneTurn && !playerTwoTurn && !turn) {
     playerOneTurn = true;
-    //println("two");
   }
 }
 
